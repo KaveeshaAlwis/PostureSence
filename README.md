@@ -375,7 +375,7 @@ Before sharing or deploying the project:
 
 ## 📁 Project Structure
 
-The repository should contain the following files:
+The repository contain the following files:
 
 ```text
 PostureSense/
@@ -384,7 +384,7 @@ PostureSense/
 ├── posturesense_dashboard_separate_neck_spine.html
 ├── firebase_rules.json
 ├── README.md
-└── docs/
+└── screenshots/
     ├── architecture.png
     ├── wearable_circuit.png
     ├── monitor_circuit.png
