@@ -1,36 +1,3 @@
-/*  PostureSense - NODE A: WEARABLE UNIT (ESP32)   -   v3 (reviewed and fixed)
-    >>> TEST VERSION with two switches (USE_MPU, USE_FLEX) so you can test each sensor alone. <<<
-    Sensors : MPU6050 (neck tilt), flex sensor (spine bend)
-    Alerts  : buzzer + vibration motor (instant), Firebase events + dashboard + Telegram
-    Cloud   : Firebase Realtime Database via REST (no Firebase library needed)
-    Library to install: ArduinoJson (v7.x, by Benoit Blanchon). Everything else is built in.
-
-    Cloud layout: /wearable/latest, /wearable/history, /wearable/events, /settings/wearable.
-    History stores ONE good/bad summary per 60 seconds (not a raw snapshot every 10 seconds).
-    The monitor ESP32 writes independently to /monitor/... in the SAME Firebase database.
-
-    WHAT CHANGED
-      1. NECK ANGLE REWRITTEN. The old code used atan2(az, ay). That only works for ONE exact
-         way of mounting the board. If gravity lies mostly on another axis (your bench test:
-         ax = 0.93), bending the neck barely changes ay/az, so the angle was mostly noise.
-         The new code does not care how the board sits on the strap. It remembers the direction
-         of gravity when you sit upright, learns which way "forward" is from one guided lean,
-         and then reports a single signed number: degrees of forward lean (+ forward, - back).
-      2. GUIDED CALIBRATION (button). Short press = re-zero (upright only, 2 s).
-         First calibration / very long press (4 s+) = upright 2 s, then lean forward 5 s.
-      3. Boot no longer calibrates blindly after 5 s. It waits for the button (30 s), so you
-         can put the strap on and sit up first.
-      4. Flex reading uses the MEDIAN of 15 samples (kills the sudden jumps) instead of a mean.
-      5. Readings taken while you are moving or jolted (|g| not close to 1) are ignored.
-      6. Hysteresis on "bad" (clears at 80 % of the limit) so hovering at the limit still alerts.
-      7. MPU6050 fault detection + automatic I2C re-start, so a glitch cannot freeze the angle.
-      8. Settings from the app are range-checked, Wi-Fi reconnect guard, GET uses http.GET().
-
-    BUTTON (GPIO27 to GND):
-        short press (< 1.5 s) : calibrate "good posture" + start session
-        1.5 - 4 s             : stop session
-        4 s or more           : full calibration again (re-learns the forward direction)
-    ---------------------------------------------------------------------------------  */
 #include <Wire.h>
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
