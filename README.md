@@ -384,6 +384,7 @@ PostureSense/
 ├── posturesense_dashboard_separate_neck_spine.html
 ├── firebase_rules.json
 ├── README.md
+|__dashboard.html
 └── screenshots/
     ├── architecture.png
     ├── wearable_circuit.png
