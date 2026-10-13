@@ -381,17 +381,10 @@ The repository contain the following files:
 PostureSense/
 ├── wearable_new.ino
 ├── monitor_node_firebase.ino
-├── posturesense_dashboard_separate_neck_spine.html
+├── posturesense_dashboard.html
 ├── firebase_rules.json
 ├── README.md
-|__dashboard.html
 └── screenshots/
-    ├── architecture.png
-    ├── wearable_circuit.png
-    ├── monitor_circuit.png
-    └── screenshots/
-        ├── dashboard.png
-        └── alert_history.png
 ```
 
 This is a suggested repository structure. Add the `docs/` folder and image files only if you include those assets in your repository.
