@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PostureSense – System Dashboard</title>
+<style>
+  :root {
+    --bg:#f6f7f9; --card:#ffffff; --text:#1c1f24; --muted:#6b7280; --line:#e5e7eb;
+    --ok:#1a9b5f; --warn:#d98a00; --alert:#d6403a; --none:#7b8794; --accent:#2f6fed; --purple:#7c3aed;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#14171c; --card:#1d2128; --text:#e8eaee; --muted:#9aa3af; --line:#2c323b;
+      --ok:#3ecf8e; --warn:#f0b13b; --alert:#ff6b64; --none:#98a2b3; --accent:#6c9cff; --purple:#a78bfa;
+    }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--text); }
+  header { max-width:1100px; margin:0 auto; padding:20px 16px 6px; display:flex; gap:16px; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; }
+  h1 { font-size:22px; margin:0; }
+  header p { margin:5px 0 0; color:var(--muted); font-size:14px; }
+  main { max-width:1100px; margin:0 auto; padding:8px 16px 40px; }
+  .connections { display:flex; gap:8px; flex-wrap:wrap; }
+  .conn { font-size:12px; font-weight:700; padding:6px 10px; border-radius:999px; color:#fff; background:var(--none); }
+  .conn.on { background:var(--ok); } .conn.off { background:var(--alert); }
+  .banner { margin:12px 0; padding:10px 14px; border-radius:8px; font-size:14px; background:color-mix(in srgb,var(--alert) 13%,var(--card)); border:1px solid var(--alert); }
+  .panel { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; margin-top:14px; }
+  .panel h2 { font-size:14px; margin:0 0 12px; color:var(--muted); font-weight:650; text-transform:uppercase; letter-spacing:.04em; }
+  .two { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:14px; }
+  .hero { display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap; }
+  .big { font-size:58px; font-weight:750; line-height:1; }
+  .big small { font-size:20px; color:var(--muted); font-weight:500; margin-left:5px; }
+  .badge { display:inline-block; padding:6px 13px; border-radius:999px; font-weight:750; font-size:13px; color:#fff; background:var(--none); }
+  .badge.ok { background:var(--ok); } .badge.warn { background:var(--warn); } .badge.alert { background:var(--alert); } .badge.none { background:var(--none); }
+  .updated { color:var(--muted); font-size:13px; margin-top:7px; }
+  .posture-summary { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:12px 14px; border:1px solid var(--line); border-radius:10px; background:var(--bg); }
+  .posture-summary .label { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; font-weight:650; }
+  .sensor-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:12px; }
+  .sensor-card { border:1px solid var(--line); border-radius:12px; padding:16px; background:var(--card); }
+  .sensor-header { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+  .sensor-title { font-size:13px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:.04em; }
+  .sensor-reading { font-size:38px; font-weight:750; line-height:1.1; }
+  .sensor-reading small { font-size:18px; color:var(--muted); font-weight:500; margin-left:4px; }
+  .sensor-help { color:var(--muted); font-size:12px; margin-top:7px; min-height:16px; }
+  @media (max-width:620px) { .sensor-grid { grid-template-columns:1fr; } }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:12px; margin-top:12px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; }
+  .card .label { font-size:12px; color:var(--muted); }
+  .card .value { font-size:24px; font-weight:700; margin-top:4px; }
+  .sub { font-size:12px; color:var(--muted); margin-top:4px; }
+  .charts { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; }
+  .chartbox { height:250px; position:relative; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th,td { text-align:left; padding:9px 6px; border-bottom:1px solid var(--line); }
+  th { color:var(--muted); font-size:12px; font-weight:650; }
+  .empty { color:var(--muted); font-size:14px; }
+  form { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px; }
+  label { font-size:13px; display:flex; flex-direction:column; gap:5px; }
+  input[type=number] { padding:9px; border:1px solid var(--line); background:var(--bg); color:var(--text); border-radius:8px; font-size:14px; }
+  .check { flex-direction:row; align-items:center; gap:8px; }
+  button { border:0; border-radius:8px; padding:10px 14px; font-weight:700; cursor:pointer; }
+  .save { background:var(--accent); color:#fff; grid-column:1/-1; }
+  .note { color:var(--muted); font-size:12px; margin-top:8px; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>PostureSense</h1>
+    <p>Wearable posture sensing + desk distance monitoring, using two independent ESP32 nodes and one Firebase database.</p>
+  </div>
+  <div class="connections">
+    <span id="wearConn" class="conn">wearable…</span>
+    <span id="monConn" class="conn">monitor…</span>
+  </div>
+</header>
+
+<main>
+  <div id="banner" class="banner" hidden></div>
+
+  <section class="two">
+    <div class="panel">
+      <h2>Wearable node · right now</h2>
+
+      <div class="posture-summary">
+        <div>
+          <div class="label">Overall posture</div>
+          <div class="updated" id="wearUpdated">Waiting for data…</div>
+        </div>
+        <span id="postureStatus" class="badge none">NO DATA</span>
+      </div>
+
+      <div class="sensor-grid">
+        <div class="sensor-card">
+          <div class="sensor-header">
+            <span class="sensor-title">Neck tilt</span>
+            <span id="neckStatus" class="badge none">NO DATA</span>
+          </div>
+          <div class="sensor-reading"><span id="neckNow">--</span><small>°</small></div>
+          <div class="sensor-help" id="neckHelp">Waiting for wearable data.</div>
+        </div>
+
+        <div class="sensor-card">
+          <div class="sensor-header">
+            <span class="sensor-title">Spine bend</span>
+            <span id="spineStatus" class="badge none">NO DATA</span>
+          </div>
+          <div class="sensor-reading"><span id="spineNow">--</span><small>%</small></div>
+          <div class="sensor-help" id="spineHelp">Waiting for wearable data.</div>
+        </div>
+      </div>
+
+      <div class="cards">
+        <div class="card"><div class="label">Session time</div><div class="value" id="sessionNow">--</div></div>
+        <div class="card"><div class="label">MPU6050</div><div class="value" id="mpuNow">--</div></div>
+        <div class="card"><div class="label">Wi-Fi signal</div><div class="value" id="wearRssi">--</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Monitor node · right now</h2>
+      <div class="hero">
+        <div>
+          <div class="big"><span id="distNow">--</span><small>cm</small></div>
+          <div class="updated" id="monUpdated">Waiting for data…</div>
+        </div>
+        <span id="distanceStatus" class="badge none">NO DATA</span>
+      </div>
+      <div class="cards">
+        <div class="card"><div class="label">Alerts since boot</div><div class="value" id="monAlerts">--</div></div>
+        <div class="card"><div class="label">Time too close</div><div class="value" id="tooCloseTime">--</div></div>
+        <div class="card"><div class="label">Node uptime</div><div class="value" id="monUptime">--</div></div>
+        <div class="card"><div class="label">Wi-Fi signal</div><div class="value" id="monRssi">--</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Overall summary</h2>
+    <div class="cards">
+      <div class="card"><div class="label">Good posture</div><div class="value" id="goodPosture">--</div><div class="sub">from recent wearable history</div></div>
+      <div class="card"><div class="label">Good screen distance</div><div class="value" id="goodDistance">--</div><div class="sub">from recent monitor history</div></div>
+      <div class="card"><div class="label">Average screen distance</div><div class="value" id="avgDistance">--</div></div>
+      <div class="card"><div class="label">Recent alert events</div><div class="value" id="alertCount">--</div></div>
+    </div>
+  </section>
+
+  <section class="charts" style="margin-top:14px">
+    <div class="panel"><h2>Neck tilt history</h2><div class="chartbox"><canvas id="neckChart"></canvas></div></div>
+    <div class="panel"><h2>Spine bend history</h2><div class="chartbox"><canvas id="spineChart"></canvas></div></div>
+    <div class="panel"><h2>Screen distance history</h2><div class="chartbox"><canvas id="distanceChart"></canvas></div></div>
+  </section>
+
+  <section class="panel">
+    <h2>Wearable settings</h2>
+    <form id="settingsForm">
+      <label>Neck tilt limit (degrees)<input id="neckThr" type="number" min="5" max="60" step="1"></label>
+      <label>Spine bend limit (%)<input id="spineThr" type="number" min="3" max="80" step="1"></label>
+      <label>Alert after bad posture (seconds)<input id="holdSec" type="number" min="1" max="120" step="1"></label>
+      <label>Session limit (minutes)<input id="sessionLimitMin" type="number" min="0" max="600" step="5"></label>
+      <label class="check"><input id="useBuzzer" type="checkbox"> Buzzer</label>
+      <label class="check"><input id="useVibe" type="checkbox"> Vibration</label>
+      <button class="save" type="submit">Save wearable settings</button>
+    </form>
+    <div id="saveMsg" class="note"></div>
+    <div class="note">The monitor-node limits stay in its ESP32 firmware because the current monitor code does not read cloud settings.</div>
+  </section>
+
+  <section class="panel">
+    <h2>Recent alerts from both nodes</h2>
+    <table id="eventsTable" hidden>
+      <thead><tr><th>Time</th><th>Source</th><th>Type</th><th>Reading</th></tr></thead>
+      <tbody id="eventsBody"></tbody>
+    </table>
+    <div id="eventsEmpty" class="empty">No alert events yet.</div>
+  </section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+// Same Realtime Database used by BOTH ESP32 devices. No slash at the end.
+const DB_URL = "https://posturesense-monitor-default-rtdb.asia-southeast1.firebasedatabase.app";
+
+const HISTORY_POINTS = 180;
+const EVENT_POINTS = 20;
+const OFFLINE_AFTER_S = 20;
+const $ = id => document.getElementById(id);
+const enc = encodeURIComponent;
+
+let wearHist = [], monHist = [], wearEvents = [], monEvents = [];
+let charts = {};
+const errors = { wearLatest:null, monLatest:null, wearHistory:null, monHistory:null, events:null, settings:null };
+
+async function getJSON(path, query="") {
+  const r = await fetch(DB_URL + path + ".json" + query, {cache:"no-store"});
+  if (!r.ok) {
+    let detail = "";
+    try { detail = (await r.json()).error || ""; } catch (_) {}
+    throw new Error("HTTP " + r.status + (detail ? " - " + detail : ""));
+  }
+  return r.json();
+}
+async function putJSON(path, obj) {
+  const r = await fetch(DB_URL + path + ".json", {
+    method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify(obj)
+  });
+  if (!r.ok) throw new Error("HTTP " + r.status);
+  return r.json();
+}
+function values(obj) { return obj ? Object.values(obj) : []; }
+function normalizeTs(ts) { return ts && ts < 100000000000 ? ts * 1000 : ts; }
+function ageSeconds(ts) { return Math.max(0, (Date.now() - normalizeTs(ts)) / 1000); }
+function fmtDuration(sec) {
+  sec = Math.max(0, Math.round(Number(sec) || 0));
+  const h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60), s=sec%60;
+  if (h) return `${h}h ${m}m`;
+  if (m) return `${m}m ${s}s`;
+  return `${s}s`;
+}
+function fmtTime(ts) { return new Date(normalizeTs(ts)).toLocaleString(); }
+function rssiWord(r) { return r > -60 ? "Good" : (r > -75 ? "Fair" : "Weak"); }
+function setBadge(id, cls, text) { const e=$(id); e.className="badge "+cls; e.textContent=text; }
+function setConn(id, online, name) { const e=$(id); e.className="conn "+(online?"on":"off"); e.textContent=name+" "+(online?"online":"offline"); }
+
+function updateBanner() {
+  const msgs = Object.values(errors).filter(Boolean);
+  const b=$("banner");
+  if (msgs.length) { b.textContent=msgs[0]; b.hidden=false; } else b.hidden=true;
+}
+
+function renderWearableLatest(w) {
+  if (!w) {
+    setConn("wearConn", false, "wearable");
+    setBadge("postureStatus","none","NO DATA");
+    setBadge("neckStatus","none","NO DATA");
+    setBadge("spineStatus","none","NO DATA");
+    $("neckNow").textContent="--";
+    $("spineNow").textContent="--";
+    $("neckHelp").textContent="No wearable data yet.";
+    $("spineHelp").textContent="No wearable data yet.";
+    $("wearUpdated").textContent="No wearable data in the database yet.";
+    return;
+  }
+
+  const age=ageSeconds(w.ts), online=age<=OFFLINE_AFTER_S;
+  setConn("wearConn", online, "wearable");
+
+  $("neckNow").textContent = w.neck != null ? Number(w.neck).toFixed(1) : "--";
+  $("spineNow").textContent = w.spine != null ? Number(w.spine).toFixed(1) : "--";
+  $("sessionNow").textContent = w.session ? fmtDuration(w.sessionSec) : "stopped";
+  $("mpuNow").textContent = w.mpuFault ? "FAULT" : "OK";
+  $("wearRssi").textContent = w.rssi != null ? `${rssiWord(w.rssi)} (${w.rssi} dBm)` : "--";
+  $("wearUpdated").textContent = `Last update ${fmtDuration(age)} ago`;
+
+  if (!online) {
+    setBadge("postureStatus","none","OFFLINE");
+    setBadge("neckStatus","none","OFFLINE");
+    setBadge("spineStatus","none","OFFLINE");
+    $("neckHelp").textContent="Wearable node is not sending current data.";
+    $("spineHelp").textContent="Wearable node is not sending current data.";
+    return;
+  }
+
+  if (!w.session) {
+    setBadge("postureStatus","none","NO SESSION");
+    setBadge("neckStatus","none","NO SESSION");
+    setBadge("spineStatus","none","NO SESSION");
+    $("neckHelp").textContent="Start a wearable session to evaluate neck posture.";
+    $("spineHelp").textContent="Start a wearable session to evaluate spine posture.";
+    return;
+  }
+
+  const neckBad = !!w.neckBad;
+  const spineBad = !!w.spineBad;
+
+  if (w.mpuFault) {
+    setBadge("neckStatus","warn","SENSOR FAULT");
+    $("neckHelp").textContent="MPU6050 reading is unavailable or unreliable.";
+  } else if (neckBad) {
+    setBadge("neckStatus","alert","BAD");
+    $("neckHelp").textContent="Neck tilt is above the configured limit.";
+  } else {
+    setBadge("neckStatus","ok","GOOD");
+    $("neckHelp").textContent="Neck tilt is within the configured limit.";
+  }
+
+  if (spineBad) {
+    setBadge("spineStatus","alert","BAD");
+    $("spineHelp").textContent="Spine bend is above the configured limit.";
+  } else {
+    setBadge("spineStatus","ok","GOOD");
+    $("spineHelp").textContent="Spine bend is within the configured limit.";
+  }
+
+  if (w.mpuFault && spineBad) {
+    setBadge("postureStatus","warn","SPINE BAD + NECK SENSOR FAULT");
+  } else if (w.mpuFault) {
+    setBadge("postureStatus","warn","NECK SENSOR FAULT");
+  } else if (neckBad && spineBad) {
+    setBadge("postureStatus","alert","NECK + SPINE BAD");
+  } else if (neckBad) {
+    setBadge("postureStatus","alert","NECK BAD");
+  } else if (spineBad) {
+    setBadge("postureStatus","alert","SPINE BAD");
+  } else {
+    setBadge("postureStatus","ok","GOOD POSTURE");
+  }
+}
+
+function renderMonitorLatest(m) {
+  if (!m) {
+    setConn("monConn", false, "monitor"); setBadge("distanceStatus","none","NO DATA");
+    $("monUpdated").textContent="No monitor data in the database yet."; return;
+  }
+  const age=ageSeconds(m.ts), online=age<=OFFLINE_AFTER_S;
+  setConn("monConn", online, "monitor");
+  if (!online) setBadge("distanceStatus","none","OFFLINE");
+  else if (m.status==="ALERT") setBadge("distanceStatus","alert","ALERT");
+  else if (m.status==="TOO CLOSE") setBadge("distanceStatus","warn","TOO CLOSE");
+  else if (m.status==="NO ONE") setBadge("distanceStatus","none","NO ONE");
+  else setBadge("distanceStatus","ok","OK");
+  $("distNow").textContent = m.distance > 0 ? Number(m.distance).toFixed(1) : "--";
+  $("monAlerts").textContent = m.alerts ?? "--";
+  $("tooCloseTime").textContent = m.tooCloseSec != null ? fmtDuration(m.tooCloseSec) : "--";
+  $("monUptime").textContent = m.uptime != null ? fmtDuration(m.uptime) : "--";
+  $("monRssi").textContent = m.rssi != null ? `${rssiWord(m.rssi)} (${m.rssi} dBm)` : "--";
+  $("monUpdated").textContent = `Last update ${fmtDuration(age)} ago`;
+}
+
+async function refreshLatest() {
+  try {
+    const [w,m] = await Promise.all([getJSON("/wearable/latest"), getJSON("/monitor/latest")]);
+    renderWearableLatest(w); renderMonitorLatest(m);
+    errors.wearLatest=null; errors.monLatest=null;
+  } catch(e) {
+    errors.wearLatest="Cannot read live data: "+e.message+". Check DB_URL and Firebase rules.";
+  }
+  updateBanner();
+}
+
+async function loadHistory() {
+  const q=`?orderBy=${enc('"ts"')}&limitToLast=${HISTORY_POINTS}`;
+  try {
+    const [w,m] = await Promise.all([getJSON("/wearable/history",q), getJSON("/monitor/history",q)]);
+    wearHist=values(w).sort((a,b)=>normalizeTs(a.ts)-normalizeTs(b.ts));
+    monHist=values(m).sort((a,b)=>normalizeTs(a.ts)-normalizeTs(b.ts));
+    errors.wearHistory=null; errors.monHistory=null;
+    renderCharts(); renderSummary();
+  } catch(e) {
+    errors.wearHistory="Cannot read history: "+e.message+". Publish firebase_rules.json so both history branches are indexed by ts.";
+  }
+  updateBanner();
+}
+
+function lineChart(id, label, rows, getValue, unit, limitValue=null) {
+  if (typeof Chart === "undefined") return;
+  const labels=rows.map(x=>new Date(normalizeTs(x.ts)).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",second:"2-digit"}));
+  const data=rows.map(getValue);
+  const datasets=[{label,data,borderColor:getComputedStyle(document.documentElement).getPropertyValue("--accent").trim(),backgroundColor:"transparent",tension:.25,pointRadius:0,spanGaps:true}];
+  if (limitValue!=null) datasets.push({label:"Current limit",data:rows.map(()=>limitValue),borderColor:getComputedStyle(document.documentElement).getPropertyValue("--alert").trim(),borderDash:[6,4],pointRadius:0});
+  if (charts[id]) charts[id].destroy();
+  charts[id]=new Chart($(id),{type:"line",data:{labels,datasets},options:{animation:false,responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,title:{display:true,text:unit}},x:{ticks:{maxTicksLimit:7}}},plugins:{legend:{position:"bottom"}}}});
+}
+
+async function renderCharts() {
+  let settings={neckThr:null,spineThr:null};
+  try { settings = (await getJSON("/settings/wearable")) || settings; } catch (_) {}
+  lineChart("neckChart","Neck tilt",wearHist,x=>x.n,"degrees",settings.neckThr);
+  lineChart("spineChart","Spine bend",wearHist,x=>x.s,"%",settings.spineThr);
+  lineChart("distanceChart","Screen distance",monHist,x=>x.d>0?x.d:null,"cm",null);
+}
+
+function renderSummary() {
+  // Wearable history stores one-minute summaries:
+  // g = good-posture seconds, b = bad-posture seconds.
+  const goodSec=wearHist.reduce((sum,x)=>sum+Number(x.g||0),0);
+  const badSec=wearHist.reduce((sum,x)=>sum+Number(x.b||0),0);
+  const postureSec=goodSec+badSec;
+  $("goodPosture").textContent = postureSec ? Math.round(100*goodSec/postureSec)+"%" : "--";
+
+  const present=monHist.filter(x=>x.d>0 && x.s!=="NO ONE");
+  const goodD=present.filter(x=>x.s==="OK").length;
+  $("goodDistance").textContent = present.length ? Math.round(100*goodD/present.length)+"%" : "--";
+  $("avgDistance").textContent = present.length ? (present.reduce((a,x)=>a+Number(x.d),0)/present.length).toFixed(1)+" cm" : "--";
+  $("alertCount").textContent = wearEvents.length + monEvents.length;
+}
+
+async function loadEvents() {
+  const q=`?orderBy=${enc('"ts"')}&limitToLast=${EVENT_POINTS}`;
+  try {
+    const [w,m]=await Promise.all([getJSON("/wearable/events",q),getJSON("/monitor/events",q)]);
+    wearEvents=values(w).map(x=>({...x,source:"Wearable"}));
+    monEvents=values(m).map(x=>({...x,source:"Monitor"}));
+    errors.events=null; renderEvents(); renderSummary();
+  } catch(e) { errors.events="Cannot read alert events: "+e.message; }
+  updateBanner();
+}
+
+function renderEvents() {
+  const all=wearEvents.concat(monEvents).sort((a,b)=>normalizeTs(b.ts)-normalizeTs(a.ts)).slice(0,30);
+  const body=$("eventsBody"); body.textContent="";
+  all.forEach(ev=>{
+    const tr=document.createElement("tr");
+    const reading = ev.source==="Wearable"
+      ? `neck ${Number(ev.neck??0).toFixed(1)}°, spine ${Number(ev.spine??0).toFixed(1)}%`
+      : (ev.d>0 ? `${Number(ev.d).toFixed(1)} cm` : "--");
+    [fmtTime(ev.ts),ev.source,ev.type||"ALERT",reading].forEach(v=>{const td=document.createElement("td");td.textContent=v;tr.appendChild(td);});
+    body.appendChild(tr);
+  });
+  $("eventsTable").hidden=!all.length; $("eventsEmpty").hidden=!!all.length;
+}
+
+const settingDefaults={neckThr:15,spineThr:12,holdSec:7,sessionLimitMin:30,useBuzzer:true,useVibe:true};
+async function loadSettings() {
+  try {
+    const s=Object.assign({},settingDefaults,(await getJSON("/settings/wearable"))||{});
+    for (const k in settingDefaults) typeof settingDefaults[k]==="boolean" ? $(k).checked=!!s[k] : $(k).value=s[k];
+    errors.settings=null;
+  } catch(e) { errors.settings="Cannot load wearable settings: "+e.message; }
+  updateBanner();
+}
+$("settingsForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const s={
+    neckThr:Number($("neckThr").value), spineThr:Number($("spineThr").value),
+    holdSec:Number($("holdSec").value), sessionLimitMin:Number($("sessionLimitMin").value),
+    useBuzzer:$("useBuzzer").checked, useVibe:$("useVibe").checked
+  };
+  try {
+    await putJSON("/settings/wearable",s);
+    $("saveMsg").textContent="Saved. The wearable ESP32 reads these settings about every 10 seconds.";
+    renderCharts();
+  } catch(e) { $("saveMsg").textContent="Save failed: "+e.message; }
+});
+
+loadSettings(); refreshLatest(); loadHistory(); loadEvents();
+setInterval(refreshLatest,2000);
+setInterval(loadHistory,10000);
+setInterval(loadEvents,10000);
+</script>
+</body>
+</html>
