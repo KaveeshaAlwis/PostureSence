@@ -7,20 +7,20 @@
 #include <HTTPClient.h>
 #include <esp_now.h>
 
-// ===================== 1. SETTINGS (change these) =====================
+// ===================== 1. SETTINGS =====================
 const bool  LOCAL_ALERT   = true;    // LED/buzzer on THIS board
 const bool  ENABLE_CLOUD  = true;    // upload to the database
 const bool  ENABLE_ESPNOW = false;   // later: send distance to the wearable
 
-const char* WIFI_SSID = "Dunith";                         // 2.4 GHz network
-const char* WIFI_PASS = "dun12126";
+const char* WIFI_SSID = "";                         // 2.4 GHz network
+const char* WIFI_PASS = "";
 const char* DB_URL    = "https://posturesense-monitor-default-rtdb.asia-southeast1.firebasedatabase.app";  // SAME database as wearable; no slash at end
 
 float         DIST_MIN_CM       = 50.0;   // closer than this = too close
 float         HYSTERESIS_CM     = 5.0;    // must move 5 cm further to clear
 float         MAX_PRESENT_CM    = 120.0;  // further than this = nobody there
 unsigned long TOO_CLOSE_SECONDS = 10;     // how long before alerting
-float         SOUND_CM_PER_US   = 0.0343; // speed of sound (tune in Step 4 of the node guide)
+float         SOUND_CM_PER_US   = 0.0343; // speed of sound 
 
 unsigned long LATEST_EVERY_MS   = 3000;   // how often to overwrite /monitor/latest
 unsigned long HISTORY_EVERY_MS  = 10000;  // how often to add a /monitor/history record
@@ -106,7 +106,7 @@ void sendDistance(float cm) {
 bool firebaseSend(const char* method, const char* path, const char* json) {
   if (WiFi.status() != WL_CONNECTED) return false;
   WiFiClientSecure client;
-  client.setInsecure();                 // learning only: encrypts but does not verify the server
+  client.setInsecure();                 // encrypts but does not verify the server
   HTTPClient http;
   http.setTimeout(5000);
   String url = String(DB_URL) + path + ".json";
