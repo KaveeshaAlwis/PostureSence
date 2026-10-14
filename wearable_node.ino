@@ -4,22 +4,22 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 
-// ===================== 1) EDIT THESE =====================
-const char* WIFI_SSID = "KAVEESHA";
-const char* WIFI_PASS = "rhux9806";
+// ===================== 1) EDIT THESE WHEN RUN =====================
+const char* WIFI_SSID = "";
+const char* WIFI_PASS = "";
 const char* DB_URL    = "https://posturesense-monitor-default-rtdb.asia-southeast1.firebasedatabase.app";  // SAME database as monitor node; no slash at end
 
 // ---- Telegram (ADDED ONLY; existing Firebase/sensor logic is unchanged) ----
 const bool  ENABLE_TELEGRAM = true;
-const char* TG_BOT_TOKEN    = "8997416116:AAECHHmSS3VjpLtEOM0at5pNYYswy6Ogceo";
-const char* TG_CHAT_ID      = "5821416925";
+const char* TG_BOT_TOKEN    = "";
+const char* TG_CHAT_ID      = "";
 // =========================================================
 
 // ===================== TEST SWITCHES =====================
 //   USE_MPU  1 = MPU6050 is used          0 = MPU6050 part is switched off (no I2C at all)
 //   USE_FLEX 1 = flex sensor is used      0 = flex sensor part is switched off
 //
-//   Flex sensor alone  :  USE_MPU 0 , USE_FLEX 1     <-- current setting
+//   Flex sensor alone  :  USE_MPU 0 , USE_FLEX 1     
 //   MPU6050 alone      :  USE_MPU 1 , USE_FLEX 0
 //   Both (final device):  USE_MPU 1 , USE_FLEX 1
 #define USE_MPU  1
@@ -159,14 +159,14 @@ float readFlexRaw() {
   // MEDIAN of 15 readings: a single wild sample (loose wire, radio burst) cannot move it.
   int v[15];
   for (int i = 0; i < 15; i++) { v[i] = analogRead(PIN_FLEX); delayMicroseconds(100); }
-  for (int i = 1; i < 15; i++) {             // insertion sort
+  for (int i = 1; i < 15; i++) {             
     int k = v[i], j = i - 1;
     while (j >= 0 && v[j] > k) { v[j + 1] = v[j]; j--; }
     v[j + 1] = k;
   }
   return (float)v[7];
 #else
-  return 0;                                  // flex sensor part is commented out (USE_FLEX = 0)
+  return 0;                                 
 #endif
 }
 
@@ -420,8 +420,7 @@ int fbSend(const char* method, const char* path, const char* body, String* resp 
   if (WiFi.status() != WL_CONNECTED) return -1;
 
   WiFiClientSecure client;
-  client.setInsecure();  // student project: encrypted TLS, but certificate is not verified
-
+  client.setInsecure();  
   HTTPClient http;
   http.setTimeout(6000);
   String url = String(DB_URL) + path + ".json";
@@ -733,7 +732,7 @@ void setup() {
   Serial.println("Put the strap on and sit upright. PRESS THE BUTTON to start the guided calibration (waiting 30 s).");
   uint32_t t0 = millis();
   while (digitalRead(PIN_BTN) == HIGH && millis() - t0 < 30000) {
-    digitalWrite(PIN_LED, (millis() / 250) % 2);      // fast blink = waiting for you
+    digitalWrite(PIN_LED, (millis() / 250) % 2);      // fast blink = waiting 
     delay(10);
   }
   digitalWrite(PIN_LED, LOW);
